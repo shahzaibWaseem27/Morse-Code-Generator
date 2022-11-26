@@ -21,7 +21,7 @@ Microcontroller project B.Eng. Electronics Engineering at HSHL
 
 *to begin producing morse code of another letter, the actuator should not be activated for the duration equivalent to 3 times that of a dot
 
-*to represent spacing between words, the actuator should not be activated for the duration equivalent to equivalent to 7 times that of a dot
+*to represent spacing between words, the actuator should not be activated for the duration equivalent to 7 times that of a dot
 
 Pseudocode:<br />
 <br />

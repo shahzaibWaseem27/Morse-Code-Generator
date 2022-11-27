@@ -1,3 +1,59 @@
+/*
+ * Morse Code Generator.c
+ *
+ * Created: 11/5/2022 11:37:19 AM
+ * Author : Shahzaib Waseem
+ */ 
+
+/*
+	we need to generate Morse code on an actuator from an English sentence using the atmega128
+	
+	e.g: "hello world" should generate morse code for the letter 'h', then for 'e', and so on
+	
+	we already have the Morse code representations for each letter, stored in an array
+	
+	Morse code has 3 kinds of outputs: a short beep, a long beep, and silence
+	
+	a dot means that an actuator is turned on and then off, with a specified delay
+	
+	a dash is similar to a dot except that its delay is 3 times longer than that of a dot
+	
+	silence corresponds to a space between words in the message
+	
+	each consecutive dot or dash of the same letter should have a delay equivalent to that of a dot
+	
+	to begin producing morse code of another letter, the actuator should not be activated for the duration equivalent to 3 times that of a dot
+	
+	to represent spacing between words, the actuator should not be activated for the duration equivalent to equivalent to 7 times that of a dot
+	
+	Pseudocode:
+	
+	LET currentCharacterMorseCode = ""
+	LET morseCodes = [".-", "-...",    ....   ]
+	LET msg = "hello world"
+	
+	FOR EACH x in msg, DO
+		IF x NOT EQUALS EMPTY SPACE
+			currentCharacterMorseCode = morseCodes[INDEX]
+			LCD.DISPLAY(x)
+			FOR EACH y in currentCharacterMorseCode, DO
+				IF y EQUALS DOT
+					produceMorseCode(DOT)
+				ELSE
+					produceMorseCode(DASH)
+				END IF
+				DELAY BETWEEN EACH DOT OR DASH
+			END OF LOOP
+			LCD.CLEAR()
+			DELAY BETWEEN EACH LETTER
+		ELSE
+			DELAY BETWEEN EACH WORD
+		END IF
+	END OF LOOP
+	
+*/
+
+
 #define F_CPU 1000000UL
 #include <avr/io.h>
 #include "string.h"
@@ -6,12 +62,33 @@
 #include "LCD.h"
 
 
+void getLCDString (char currentCharacter, char *currentCharacterMorseCode, char *str){
+	
+	*str = currentCharacter;
+	
+	unsigned int i = 0;
+	
+	while(*(currentCharacterMorseCode + i) != '\0'){
+		*(str + 5 + i) = *(currentCharacterMorseCode + i);
+		i++;
+	}
+	*(str + 5 + i) = '\0';
+}
+
+
 int main(void)
 {
 	char morseCodes[][5] = {".-","-...","-.-.","-..",".","..-.","--.","....","..",".---","-.-",".-..",
 	"--","-.","---",".--.","--.-",".-.","...","-","..-","...-",".--","-..-","-.--","--.."};
 	
 	char currentCharacterMorseCode[5];
+	
+	char display[16];
+	*(display + 1) = ' ';
+	*(display + 2) = '-';
+	*(display + 3) = '>';
+	*(display + 4) = ' ';
+	
    
 	setPinMode(ACTUATOR_PIN, ACTUATOR_PORT, OUTPUT);
 	setPinMode(2, 'C', INPUT);
@@ -21,6 +98,8 @@ int main(void)
 
 	char msg[] = "hello world";
 	
+	
+	
     while (1) 
     {
 		//traverse each character of the English message
@@ -28,7 +107,11 @@ int main(void)
 			//if a character is not a space, get the morse code of the current character
 			if(msg[i] != ' '){
 				strcpy(currentCharacterMorseCode, morseCodes[(int) msg[i] - 97]);
-				LCD_Char(msg[i]);
+				
+				getLCDString(msg[i], currentCharacterMorseCode, display);
+				
+				LCD_String(display);
+				_delay_ms(3000);
 				//traverse this morse code
 				for(int j = 0; j < strlen(currentCharacterMorseCode); j++){
 					if(currentCharacterMorseCode[j] == '.'){

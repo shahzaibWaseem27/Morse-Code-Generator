@@ -35,7 +35,7 @@
 	FOR EACH x in msg, DO
 		IF x NOT EQUALS EMPTY SPACE
 			currentCharacterMorseCode = morseCodes[INDEX]
-			LCD.DISPLAY(x)
+			LCD.display(x)
 			FOR EACH y in currentCharacterMorseCode, DO
 				IF y EQUALS DOT
 					produceMorseCode(DOT)
@@ -60,21 +60,7 @@
 #include "produceMorse.h"
 #include "setPinMode.h"
 #include "LCD.h"
-
-
-void getLCDString (char currentCharacter, char *currentCharacterMorseCode, char *str){
-	
-	*str = currentCharacter;
-	
-	unsigned int i = 0;
-	
-	while(*(currentCharacterMorseCode + i) != '\0'){
-		*(str + 5 + i) = *(currentCharacterMorseCode + i);
-		i++;
-	}
-	*(str + 5 + i) = '\0';
-}
-
+#include "ISRs.h"
 
 int main(void)
 {
@@ -84,19 +70,29 @@ int main(void)
 	char currentCharacterMorseCode[5];
 	
 	char display[16];
-	*(display + 1) = ' ';
-	*(display + 2) = '-';
-	*(display + 3) = '>';
-	*(display + 4) = ' ';
+	display[1] = ' ';
+	display[2] = '-';
+	display[3] = '>';
+	display[4] = ' ';
 	
    
-	setPinMode(ACTUATOR_PIN, ACTUATOR_PORT, OUTPUT);
-	setPinMode(2, 'C', INPUT);
+	setPinMode(ACTUATOR1_PIN, ACTUATOR1_PORT, OUTPUT);
+	setPinMode(ACTUATOR2_PIN, ACTUATOR2_PORT, OUTPUT);
+	DDRE = 0x00;
+	DDRB = 0xFF;
+	DDRC = 0xFF;
 	
 	LCD_Init();
 	
+	EIMSK |= (1 << INT4);
+	EIMSK |= (1 << INT5);
 
-	char msg[] = "hello world";
+	EICRB |= (1 << ISC40) | (1 << ISC41);
+	EICRB |= (1 << ISC50) | (1 << ISC51);
+
+	sei();
+
+	char msg[] = "me hungry";
 	
 	
 	
@@ -111,7 +107,7 @@ int main(void)
 				getLCDString(msg[i], currentCharacterMorseCode, display);
 				
 				LCD_String(display);
-				_delay_ms(3000);
+				//_delay_ms(2000);
 				//traverse this morse code
 				for(int j = 0; j < strlen(currentCharacterMorseCode); j++){
 					if(currentCharacterMorseCode[j] == '.'){
@@ -132,8 +128,9 @@ int main(void)
 				
 			} else {
 				//else, keep the actuator low for the duration corresponding to a space between words
-				
+				//LCD_String("space");
 				_delay_ms(DELAY_BETWEEN_WORDS);
+				//LCD_Clear();
 			}
     }
 }

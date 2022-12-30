@@ -5,6 +5,19 @@
 #define RS PD0
 #define EN PD1
 
+void getLCDString (char currentCharacter, char *currentCharacterMorseCode, char *str){
+	
+	*str = currentCharacter;
+	
+	unsigned int i = 0;
+	
+	while(*(currentCharacterMorseCode + i) != '\0'){
+		*(str + 5 + i) = *(currentCharacterMorseCode + i);
+		i++;
+	}
+	*(str + 5 + i) = '\0';
+}
+
 void LCD_Command( unsigned char cmnd )
 {
 	LCD_Port = (LCD_Port & 0x0F) | (cmnd & 0xF0);/* Sending upper nibble */
